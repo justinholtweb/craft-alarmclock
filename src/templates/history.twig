@@ -1,0 +1,72 @@
+{% extends "_layouts/cp" %}
+{% set title = "History"|t('alarm-clock') %}
+{% set selectedSubnavItem = 'history' %}
+{% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+
+{% block content %}
+    <div class="ac-stats">
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.published }}</span><span class="ac-stat__l">{{ "published in 30 days"|t('alarm-clock') }}</span></div>
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.expired }}</span><span class="ac-stat__l">{{ "expired in 30 days"|t('alarm-clock') }}</span></div>
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.applied }}</span><span class="ac-stat__l">{{ "drafts applied in 30 days"|t('alarm-clock') }}</span></div>
+    </div>
+
+    <div class="ac-filters">
+        <a class="btn small {{ not filter ? 'active' }}" href="{{ url('alarm-clock/history') }}">{{ "All"|t('alarm-clock') }}</a>
+        <a class="btn small {{ filter == 'published' ? 'active' }}" href="{{ url('alarm-clock/history', { transition: 'published' }) }}">{{ "Published"|t('alarm-clock') }}</a>
+        <a class="btn small {{ filter == 'expired' ? 'active' }}" href="{{ url('alarm-clock/history', { transition: 'expired' }) }}">{{ "Expired"|t('alarm-clock') }}</a>
+        <a class="btn small {{ filter == 'applied' ? 'active' }}" href="{{ url('alarm-clock/history', { transition: 'applied' }) }}">{{ "Drafts applied"|t('alarm-clock') }}</a>
+    </div>
+
+    {% if transitions|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ "Scheduled for"|t('alarm-clock') }}</th>
+                    <th>{{ "Noticed"|t('alarm-clock') }}</th>
+                    <th>{{ "What"|t('alarm-clock') }}</th>
+                    <th>{{ "Title"|t('alarm-clock') }}</th>
+                    <th>{{ "Follow-up"|t('alarm-clock') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transition in transitions %}
+                    {% set tasks = tasksByTransition[transition.id] ?? [] %}
+                    {% set bad = tasks|filter(t => t.status in ['failed', 'abandoned'])|length %}
+                    <tr>
+                        <td><code>{{ transition.scheduledFor|datetime('short') }}</code></td>
+                        <td>
+                            <code>{{ transition.detectedAt|datetime('short') }}</code>
+                            {% if transition.latency is not null %}
+                                <span class="light" title="{{ 'How long after the scheduled moment anything noticed'|t('alarm-clock') }}">
+                                    +{{ transition.latency }}s
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td><span class="ac-pill ac-pill--{{ transition.transition }}">{{ transition.label }}</span></td>
+                        <td>
+                            {% set element = transition.element %}
+                            {% if element %}
+                                <a href="{{ element.getCpEditUrl() }}">{{ transition.title ?? "Untitled"|t('alarm-clock') }}</a>
+                            {% else %}
+                                <span class="light">{{ transition.title ?? "Deleted"|t('alarm-clock') }} <em>({{ "deleted since"|t('alarm-clock') }})</em></span>
+                            {% endif %}
+                            <span class="light"> · {{ transition.site ? transition.site.handle : '?' }} · {{ transition.source }}</span>
+                        </td>
+                        <td>
+                            {% if not tasks|length %}
+                                <span class="light">{{ "nothing configured"|t('alarm-clock') }}</span>
+                            {% elseif bad %}
+                                <span class="ac-pill ac-pill--bad">{{ "{n} failed"|t('alarm-clock', { n: bad }) }}</span>
+                                <a class="light" href="{{ url('alarm-clock/problems') }}">{{ "see problems"|t('alarm-clock') }}</a>
+                            {% else %}
+                                <span class="light">{{ tasks|map(t => t.label)|join(', ') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ "Nothing has crossed a scheduled date yet. Alarm Clock only records what happens after it was installed."|t('alarm-clock') }}</p>
+    {% endif %}
+{% endblock %}

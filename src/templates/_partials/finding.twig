@@ -1,0 +1,14 @@
+{# One line of a diagnosis. #}
+{% set icons = { ok: '✓', note: '·', warning: '!', blocker: '✗' } %}
+{% set colours = { ok: '#3F9C57', note: '#7A8593', warning: '#C87E12', blocker: '#CF1124' } %}
+
+<li class="ac-finding ac-finding--{{ finding.level }}">
+    <span class="ac-finding__mark" style="color: {{ colours[finding.level] }};" aria-hidden="true">{{ icons[finding.level] }}</span>
+    <div class="ac-finding__body">
+        <strong>{{ finding.label }}</strong>
+        <span>{{ finding.message }}</span>
+        {% if finding.fix %}
+            <p class="light ac-finding__fix">{{ finding.fix }}</p>
+        {% endif %}
+    </div>
+</li>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Plugin store icon. Amber on midnight — a clock face glowing in a dark room, which is when a
+  scheduled post is usually due and nobody is watching.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" rx="18" fill="#12203A"/>
+
+  <g transform="translate(0 2) scale(0.94) translate(3 1)">
+    <!-- bells -->
+    <path d="M24.5 6.5c7.7 0 14 6.3 14 14 0 2.4-.6 4.6-1.7 6.6-4.6 1-8.8 3.1-12.3 6.1-3.5-3-7.7-5.1-12.3-6.1a13.9 13.9 0 0 1-1.7-6.6c0-7.7 6.3-14 14-14z" fill="#FFB703"/>
+    <path d="M75.5 6.5c7.7 0 14 6.3 14 14 0 2.4-.6 4.6-1.7 6.6-4.6 1-8.8 3.1-12.3 6.1-3.5-3-7.7-5.1-12.3-6.1a13.9 13.9 0 0 1-1.7-6.6c0-7.7 6.3-14 14-14z" fill="#FFB703"/>
+
+    <!-- hammer -->
+    <path d="M45 8h10v11a5 5 0 0 1-10 0z" fill="#FFB703"/>
+
+    <!-- case -->
+    <circle cx="50" cy="62" r="36" fill="#FFB703"/>
+    <circle cx="50" cy="62" r="27" fill="#12203A"/>
+
+    <!-- feet -->
+    <path d="M20 88.5l7.5 5.5-6 8.5-8-6zM80 88.5l6.5 8-8 6-6-8.5z" fill="#FFB703"/>
+
+    <!-- hands -->
+    <path d="M47 41h6v22h-6z" fill="#FFB703"/>
+    <path d="M50 59.5l3.2 4.4-19 13.8-3.2-4.4z" fill="#FFB703"/>
+    <circle cx="50" cy="62" r="3.4" fill="#12203A"/>
+  </g>
+</svg>

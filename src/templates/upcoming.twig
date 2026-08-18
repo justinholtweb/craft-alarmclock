@@ -1,0 +1,110 @@
+{% extends "_layouts/cp" %}
+{% set title = "Upcoming"|t('alarm-clock') %}
+{% set selectedSubnavItem = 'upcoming' %}
+{% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <button type="button" class="btn submit" data-ac-action="alarm-clock/dashboard/run-now">{{ "Check now"|t('alarm-clock') }}</button>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="ac-stats">
+        <div class="ac-stat">
+            <span class="ac-stat__n">{{ pendingCount }}</span>
+            <span class="ac-stat__l">{{ "entries waiting on a post date"|t('alarm-clock') }}</span>
+        </div>
+        <div class="ac-stat">
+            <span class="ac-stat__n">{{ schedules|length }}</span>
+            <span class="ac-stat__l">{{ "drafts waiting to be applied"|t('alarm-clock') }}</span>
+        </div>
+        <div class="ac-stat">
+            <span class="ac-stat__n">{{ lastTick ? lastTick|timestamp('short') : "never"|t('alarm-clock') }}</span>
+            <span class="ac-stat__l">
+                {{ "last check"|t('alarm-clock') }}{% if lastTickSource %} ({{ lastTickSource }}){% endif %}
+            </span>
+        </div>
+    </div>
+
+    {% if staleStatuses|length %}
+        <div class="ac-banner ac-banner--bad">
+            <strong>{{ "{n} entries are past their post date but still stored as pending."|t('alarm-clock', { n: staleStatuses|length }) }}</strong>
+            {{ "This site runs with `staticStatuses` on, so these are genuinely not published. Alarm Clock refreshes them on the next check."|t('alarm-clock') }}
+        </div>
+    {% endif %}
+
+    <h2>{{ "Entries"|t('alarm-clock') }}</h2>
+
+    {% if entries|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ "Goes live"|t('alarm-clock') }}</th>
+                    <th>{{ "Entry"|t('alarm-clock') }}</th>
+                    <th>{{ "Section"|t('alarm-clock') }}</th>
+                    <th>{{ "Site"|t('alarm-clock') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                    <tr>
+                        <td><code>{{ entry.postDate ? entry.postDate|datetime('short') : '—' }}</code></td>
+                        <td><a href="{{ entry.getCpEditUrl() }}">{{ entry.title ?? "Untitled"|t('alarm-clock') }}</a></td>
+                        <td class="light">{{ entry.getSection() ? entry.getSection().name : '—' }}</td>
+                        <td class="light">{{ entry.getSite().handle }}</td>
+                        <td class="rightalign">
+                            <a class="btn small" href="{{ url('alarm-clock/diagnostics/' ~ entry.id ~ '/' ~ entry.getSite().handle) }}">{{ "Explain"|t('alarm-clock') }}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ "Nothing is waiting on a post date."|t('alarm-clock') }}</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>{{ "Scheduled drafts"|t('alarm-clock') }}</h2>
+    <p class="light">
+        {{ "Craft can schedule an entry’s first appearance, but not “replace what is live with this draft, later”. Set a time from the Alarm Clock panel in any draft’s sidebar."|t('alarm-clock') }}
+    </p>
+
+    {% if schedules|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ "Applies at"|t('alarm-clock') }}</th>
+                    <th>{{ "Entry"|t('alarm-clock') }}</th>
+                    <th>{{ "Note"|t('alarm-clock') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                    {% set canonical = schedule.canonicalId ? craft.entries.id(schedule.canonicalId).status(null).one() : null %}
+                    <tr>
+                        <td><code>{{ schedule.publishAtDate|datetime('short') }}</code></td>
+                        <td>
+                            {% if canonical %}
+                                <a href="{{ canonical.getCpEditUrl() }}">{{ canonical.title }}</a>
+                            {% else %}
+                                <span class="light">{{ "Draft"|t('alarm-clock') }} {{ schedule.draftId }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="light">{{ schedule.note ?? '—' }}</td>
+                        <td class="rightalign">
+                            <button type="button" class="btn small" data-ac-action="alarm-clock/dashboard/cancel-schedule" data-ac-id="{{ schedule.id }}">
+                                {{ "Cancel"|t('alarm-clock') }}
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ "No drafts are scheduled."|t('alarm-clock') }}</p>
+    {% endif %}
+{% endblock %}

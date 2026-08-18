@@ -1,0 +1,56 @@
+{
+    "name": "justinholtweb/craft-alarmclock",
+    "description": "Scheduled publishing for Craft CMS that actually tells you it happened — cache clearing, notifications, retries, scheduled drafts and a diagnostic for “why isn’t my post live?”",
+    "version": "5.0.0",
+    "type": "craft-plugin",
+    "keywords": [
+        "craftcms",
+        "craft-plugin",
+        "scheduled",
+        "publishing",
+        "post-date",
+        "cache",
+        "notifications",
+        "cron",
+        "queue"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "support": {
+        "email": "justin@justinholt.com",
+        "issues": "https://github.com/justinholtweb/craft-alarmclock/issues",
+        "source": "https://github.com/justinholtweb/craft-alarmclock"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "craftcms/cms": "^5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\alarmclock\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "extra": {
+        "name": "Alarm Clock",
+        "handle": "alarm-clock",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://github.com/justinholtweb/craft-alarmclock/blob/main/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-alarmclock/main/CHANGELOG.md",
+        "class": "justinholtweb\\alarmclock\\Plugin"
+    }
+}

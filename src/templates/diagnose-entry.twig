@@ -1,0 +1,38 @@
+{% extends "_layouts/cp" %}
+{% set title = "Why isn’t this live?"|t('alarm-clock') %}
+{% set selectedSubnavItem = 'diagnostics' %}
+{% set crumbs = [
+    { label: "Alarm Clock"|t('alarm-clock'), url: url('alarm-clock') },
+    { label: "Diagnostics"|t('alarm-clock'), url: url('alarm-clock/diagnostics') },
+] %}
+{% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+
+{% block content %}
+    <div class="ac-entry-head">
+        <h2 style="margin: 0;">{{ entry.title ?? "Untitled"|t('alarm-clock') }}</h2>
+        <p class="light" style="margin: 4px 0 0;">
+            {{ entry.getSite().name }}
+            {%- if entry.getSection() %} · {{ entry.getSection().name }}{% endif %}
+            · {{ "ID"|t('alarm-clock') }} {{ entry.id }}
+            {%- if entry.getIsDraft() %} · {{ "Draft"|t('alarm-clock') }}{% endif %}
+        </p>
+        <p style="margin-top: 10px;">
+            <a class="btn small" href="{{ entry.getCpEditUrl() }}">{{ "Edit"|t('alarm-clock') }}</a>
+            {% if entry.getUrl() %}
+                <a class="btn small" href="{{ entry.getUrl() }}" rel="noopener" target="_blank">{{ "View"|t('alarm-clock') }}</a>
+            {% endif %}
+        </p>
+    </div>
+
+    {% if hasProblems %}
+        <div class="ac-banner ac-banner--bad">{{ "Here is what is in the way."|t('alarm-clock') }}</div>
+    {% else %}
+        <div class="ac-banner ac-banner--good">{{ "Nothing is in the way — this entry is on the site, or is correctly waiting for its post date."|t('alarm-clock') }}</div>
+    {% endif %}
+
+    <ul class="ac-findings">
+        {% for finding in findings %}
+            {% include 'alarm-clock/_partials/finding' with { finding: finding } only %}
+        {% endfor %}
+    </ul>
+{% endblock %}

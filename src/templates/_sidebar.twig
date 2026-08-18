@@ -1,0 +1,83 @@
+{% import "_includes/forms" as forms %}
+
+{#
+   Renders inside Craft's element-editor form.
+
+   Everything here is a <div>. A nested <form> would not merely fail — the parser drops the inner
+   tag and keeps its children, so the hidden action input ends up in the page form alongside
+   Craft's own, and with two of them Craft takes the last: clicking Save would run this instead.
+   The button posts with Craft.sendActionRequest.
+#}
+
+{% set isDraft = entry.getIsDraft() %}
+{% set now = now %}
+{% set isPending = not isDraft and entry.postDate and entry.postDate > now %}
+{% set isExpired = entry.expiryDate and entry.expiryDate <= now %}
+
+{% if isDraft or isPending or isExpired or schedule %}
+    <div class="meta ac-sidebar" data-ac-sidebar>
+        <div class="field">
+            <div class="heading">
+                <label>{{ "Alarm Clock"|t('alarm-clock') }}</label>
+            </div>
+            <div class="input">
+                {% if isPending %}
+                    <p class="ac-sidebar__note">
+                        {{ "Goes live {date}."|t('alarm-clock', { date: entry.postDate|datetime('short') }) }}
+                        {{ "Caches that mention it will be cleared then, and anyone configured will be told."|t('alarm-clock') }}
+                    </p>
+                {% elseif isExpired %}
+                    <p class="ac-sidebar__note">
+                        {{ "Expired {date}."|t('alarm-clock', { date: entry.expiryDate|datetime('short') }) }}
+                    </p>
+                {% endif %}
+
+                {% if isDraft %}
+                    {% if schedule %}
+                        <p class="ac-sidebar__note">
+                            <strong>{{ "Scheduled"|t('alarm-clock') }}</strong><br>
+                            {{ "This draft will be applied {date}."|t('alarm-clock', { date: schedule.publishAtDate|datetime('short') }) }}
+                        </p>
+                        {% if canSchedule %}
+                            <button type="button" class="btn small" data-ac-cancel="{{ schedule.id }}">
+                                {{ "Cancel"|t('alarm-clock') }}
+                            </button>
+                        {% endif %}
+                    {% elseif canSchedule %}
+                        <p class="ac-sidebar__note light">
+                            {{ "Apply this draft automatically at a set time."|t('alarm-clock') }}
+                        </p>
+
+                        {# `dateTimeField`, not `dateTime` — Craft 5's forms.twig has no macro by
+                           that name, and an undefined macro throws at render time rather than at
+                           compile time, so the panel just quietly stops appearing. #}
+                        {{ forms.dateTimeField({
+                            label: "Apply at"|t('alarm-clock'),
+                            id: 'ac-publish-at',
+                            name: 'acPublishAt',
+                        }) }}
+
+                        {{ forms.checkboxField({
+                            id: 'ac-enable-after',
+                            label: "Enable the entry when it is applied"|t('alarm-clock'),
+                        }) }}
+
+                        <button type="button" class="btn small submit" data-ac-schedule
+                                data-draft-id="{{ entry.draftId }}"
+                                data-site-id="{{ entry.siteId }}">
+                            {{ "Schedule"|t('alarm-clock') }}
+                        </button>
+                    {% endif %}
+                {% endif %}
+
+                <p class="ac-sidebar__link">
+                    <a href="{{ url('alarm-clock/diagnostics/' ~ entry.getCanonicalId() ~ '/' ~ entry.getSite().handle) }}">
+                        {{ "Why isn’t this live?"|t('alarm-clock') }}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+{% endif %}

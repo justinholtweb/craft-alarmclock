@@ -1,0 +1,92 @@
+{% extends "_layouts/cp" %}
+{% set title = "Problems"|t('alarm-clock') %}
+{% set selectedSubnavItem = 'problems' %}
+{% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+
+{% block actionButton %}
+    {% if canManage and counts.abandoned %}
+        <button type="button" class="btn submit" data-ac-action="alarm-clock/dashboard/retry-all">{{ "Retry everything"|t('alarm-clock') }}</button>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="ac-stats">
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.pending }}</span><span class="ac-stat__l">{{ "waiting"|t('alarm-clock') }}</span></div>
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.failed }}</span><span class="ac-stat__l">{{ "failed, will retry"|t('alarm-clock') }}</span></div>
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.abandoned }}</span><span class="ac-stat__l">{{ "given up on"|t('alarm-clock') }}</span></div>
+        <div class="ac-stat"><span class="ac-stat__n">{{ counts.done }}</span><span class="ac-stat__l">{{ "done"|t('alarm-clock') }}</span></div>
+    </div>
+
+    {% if failedSchedules|length %}
+        <h2>{{ "Drafts that could not be applied"|t('alarm-clock') }}</h2>
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ "Was due"|t('alarm-clock') }}</th>
+                    <th>{{ "Draft"|t('alarm-clock') }}</th>
+                    <th>{{ "Why"|t('alarm-clock') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in failedSchedules %}
+                    <tr>
+                        <td><code>{{ schedule.publishAtDate|datetime('short') }}</code></td>
+                        <td>{{ schedule.draftId }}</td>
+                        <td class="ac-error">{{ schedule.lastError ?? "not recorded"|t('alarm-clock') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+    {% endif %}
+
+    <h2>{{ "Failed work"|t('alarm-clock') }}</h2>
+
+    {% if tasks|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ "What"|t('alarm-clock') }}</th>
+                    <th>{{ "About"|t('alarm-clock') }}</th>
+                    <th>{{ "Attempts"|t('alarm-clock') }}</th>
+                    <th>{{ "Next try"|t('alarm-clock') }}</th>
+                    <th>{{ "Error"|t('alarm-clock') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                    {% set transition = task.transitionId ? transitions[task.transitionId] ?? null : null %}
+                    <tr>
+                        <td>
+                            {{ task.label }}
+                            <span class="ac-pill ac-pill--{{ task.status == 'abandoned' ? 'bad' : 'warn' }}">{{ task.status }}</span>
+                        </td>
+                        <td>
+                            {% if transition %}
+                                {{ transition.title ?? "Element"|t('alarm-clock') ~ ' ' ~ transition.elementId }}
+                                <span class="light">· {{ transition.transition }}</span>
+                            {% else %}
+                                <span class="light">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.attempts }} / {{ task.maxAttempts }}</td>
+                        <td class="light">
+                            {{- task.status == 'abandoned' ? "never"|t('alarm-clock') : (task.availableAt ? task.availableAt|datetime('short') : "now"|t('alarm-clock')) -}}
+                        </td>
+                        <td class="ac-error">{{ task.lastError ?? '—' }}</td>
+                        <td class="rightalign">
+                            {% if canManage %}
+                                <button type="button" class="btn small" data-ac-action="alarm-clock/dashboard/retry" data-ac-id="{{ task.id }}">
+                                    {{ "Retry now"|t('alarm-clock') }}
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ "Nothing has failed."|t('alarm-clock') }}</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,377 @@
+{% import "_includes/forms" as forms %}
+
+<p class="light">
+    {{ "Craft does not miss scheduled posts — entry status is worked out from the dates, so an entry becomes live the moment the clock passes it, cron or no cron. What Craft misses is that it *happened*: no event fires, no cache is cleared and nobody is told, because as far as Craft is concerned nothing changed. Alarm Clock watches those moments go by and does the rest."|t('alarm-clock')|md }}
+</p>
+
+{{ forms.lightswitchField({
+    label: "Enabled"|t('alarm-clock'),
+    instructions: "Off means nothing is detected and no task runs. History and settings are kept."|t('alarm-clock'),
+    id: 'enabled',
+    name: 'enabled',
+    on: settings.enabled,
+}) }}
+
+<hr>
+
+<h2>{{ "Watching"|t('alarm-clock') }}</h2>
+
+<p class="light">
+    {{ "Three triggers, because the right one depends on hosting nobody can see from here. They deduplicate against each other in the database, so running all three is safe — a crossing is acted on exactly once no matter how many of them notice it."|t('alarm-clock') }}
+</p>
+
+{{ forms.lightswitchField({
+    label: "Check on front-end requests"|t('alarm-clock'),
+    instructions: "Runs after the page has been sent to the visitor, at most once every tick interval, doing a strictly bounded amount of work. This is the trigger that works on hosting with no cron and no queue runner."|t('alarm-clock'),
+    id: 'webTrigger',
+    name: 'webTrigger',
+    on: settings.webTrigger,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Keep a check on the queue"|t('alarm-clock'),
+    instructions: "A job that reschedules itself. Only useful if the queue on this site actually runs."|t('alarm-clock'),
+    id: 'queueTrigger',
+    name: 'queueTrigger',
+    on: settings.queueTrigger,
+}) }}
+
+<div class="readable" style="margin: 14px 0 24px;">
+    <blockquote class="note">
+        <p>
+            {{ "If this site has real cron, that is the trigger to prefer — it is exact, and it costs the visitor nothing:"|t('alarm-clock') }}
+        </p>
+        <pre style="margin-top: 8px;"><code>* * * * * cd /path/to/site &amp;&amp; php craft alarm-clock/tick</code></pre>
+    </blockquote>
+</div>
+
+{{ forms.textField({
+    label: "Check at most every"|t('alarm-clock'),
+    instructions: "Seconds. The shortest gap between two front-end checks. Also how long a scheduled post may sit unnoticed in the worst case."|t('alarm-clock'),
+    id: 'tickInterval',
+    name: 'tickInterval',
+    value: settings.tickInterval,
+    type: 'number',
+    size: 8,
+    errors: settings.getErrors('tickInterval'),
+}) }}
+
+{{ forms.textField({
+    label: "Look back"|t('alarm-clock'),
+    instructions: "Seconds of overlap on every scan. Guards against a database and a web server whose clocks differ by a second or two dropping a crossing into the gap. Costs one indexed query; duplicates are discarded."|t('alarm-clock'),
+    id: 'lookback',
+    name: 'lookback',
+    value: settings.lookback,
+    type: 'number',
+    size: 8,
+    errors: settings.getErrors('lookback'),
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Watch expiry dates too"|t('alarm-clock'),
+    instructions: "Treat an entry expiring as a moment worth clearing caches for. Usually wanted — an expired entry leaves a cached listing pointing at a page that now 404s."|t('alarm-clock'),
+    id: 'watchExpiry',
+    name: 'watchExpiry',
+    on: settings.watchExpiry,
+}) }}
+
+{{ forms.checkboxSelectField({
+    label: "Only these sections"|t('alarm-clock'),
+    instructions: "Leave everything unchecked to watch every section."|t('alarm-clock'),
+    id: 'sections',
+    name: 'sections',
+    options: sections|map(s => { label: s.name, value: s.uid }),
+    values: settings.sections,
+    showAllOption: false,
+}) }}
+
+<hr>
+
+<h2>{{ "Clearing caches"|t('alarm-clock') }}</h2>
+
+<p class="light">
+    {{ "This is the part that fixes the bug most people arrive with. Craft caps a `{% cache %}` block's life at the soonest expiry date of the elements it rendered — and a pending entry is not returned by any live query, so it contributes nothing. A cached listing has no idea a post is coming, and goes on serving yesterday's HTML after the post is live in the database."|t('alarm-clock')|md }}
+</p>
+
+{{ forms.lightswitchField({
+    label: "Clear the caches that mention it"|t('alarm-clock'),
+    instructions: "Invalidates the same tags an ordinary save would — the element, its section, its entry type. Precise, cheap, and enough for almost every site."|t('alarm-clock'),
+    id: 'invalidateElementCaches',
+    name: 'invalidateElementCaches',
+    on: settings.invalidateElementCaches,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Clear caches for the whole element type"|t('alarm-clock'),
+    instructions: "A bigger hammer. Worth it if listings are built with raw SQL, a search index, or anything else Craft's tag collection cannot see."|t('alarm-clock'),
+    id: 'invalidateTypeCaches',
+    name: 'invalidateTypeCaches',
+    on: settings.invalidateTypeCaches,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Clear every template cache"|t('alarm-clock'),
+    instructions: "The biggest hammer there is: every `{% cache %}` on the site, on every crossing. Almost never the right answer."|t('alarm-clock'),
+    id: 'invalidateAllTemplateCaches',
+    name: 'invalidateAllTemplateCaches',
+    on: settings.invalidateAllTemplateCaches,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Warm the pages afterwards"|t('alarm-clock'),
+    instructions: "Requests the pages so the first real visitor gets a warm one instead of paying to rebuild it."|t('alarm-clock'),
+    id: 'warmUrls',
+    name: 'warmUrls',
+    on: settings.warmUrls,
+}) }}
+
+{{ forms.editableTableField({
+    label: "Also warm these"|t('alarm-clock'),
+    instructions: "The pages that *list* the new post, which are the ones a reader notices are stale — the home page, a section index, a feed. Relative paths are resolved against the site the crossing happened in."|t('alarm-clock'),
+    id: 'extraWarmUrls',
+    name: 'extraWarmUrls',
+    cols: {
+        url: { type: 'singleline', heading: "URL or path"|t('alarm-clock'), placeholder: '/news', code: true },
+    },
+    rows: settings.extraWarmUrls|map(u => { url: u }),
+    addRowLabel: "Add a URL"|t('alarm-clock'),
+    allowAdd: true,
+    allowDelete: true,
+    allowReorder: true,
+}) }}
+
+<hr>
+
+<h2>{{ "Telling people"|t('alarm-clock') }}</h2>
+
+{{ forms.lightswitchField({
+    label: "Email when something goes live"|t('alarm-clock'),
+    id: 'notify',
+    name: 'notify',
+    on: settings.notify,
+    toggle: 'notify-settings',
+}) }}
+
+<div id="notify-settings" class="{{ not settings.notify ? 'hidden' }}">
+    {{ forms.editableTableField({
+        label: "Email addresses"|t('alarm-clock'),
+        instructions: "An environment variable such as `$EDITORIAL_EMAIL` works here."|t('alarm-clock'),
+        id: 'notifyEmails',
+        name: 'notifyEmails',
+        cols: {
+            email: { type: 'singleline', heading: "Address"|t('alarm-clock'), placeholder: 'desk@example.com' },
+        },
+        rows: settings.notifyEmails|map(e => { email: e }),
+        addRowLabel: "Add an address"|t('alarm-clock'),
+        allowAdd: true,
+        allowDelete: true,
+        errors: settings.getErrors('notifyEmails'),
+    }) }}
+
+    {{ forms.checkboxSelectField({
+        label: "User groups"|t('alarm-clock'),
+        instructions: "Every active member of these groups is emailed as well."|t('alarm-clock'),
+        id: 'notifyUserGroups',
+        name: 'notifyUserGroups',
+        options: userGroups|map(g => { label: g.name, value: g.uid }),
+        values: settings.notifyUserGroups,
+        showAllOption: false,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Email about expiries too"|t('alarm-clock'),
+        id: 'notifyOnExpiry',
+        name: 'notifyOnExpiry',
+        on: settings.notifyOnExpiry,
+    }) }}
+
+    {{ forms.textField({
+        label: "Subject line"|t('alarm-clock'),
+        instructions: "`{title}`, `{site}` and `{transition}` are substituted. Leave blank for the built-in one."|t('alarm-clock'),
+        id: 'notificationSubject',
+        name: 'notificationSubject',
+        value: settings.notificationSubject,
+        placeholder: '[{site}] {title} — {transition}',
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: "Body template"|t('alarm-clock'),
+        instructions: "A site template to render instead of the built-in email. It is given `transition`, `element` and `site`."|t('alarm-clock'),
+        id: 'notificationTemplate',
+        name: 'notificationTemplate',
+        value: settings.notificationTemplate,
+        suggestTemplates: true,
+    }) }}
+</div>
+
+{{ forms.lightswitchField({
+    label: "Email when Alarm Clock gives up on something"|t('alarm-clock'),
+    instructions: "Separate on purpose. Plenty of sites do not want an email every time a post appears; every site wants to know when the plugin has stopped being able to do its job. Falls back to the system email address if no recipients are set."|t('alarm-clock'),
+    id: 'notifyOnFailure',
+    name: 'notifyOnFailure',
+    on: settings.notifyOnFailure,
+}) }}
+
+<hr>
+
+<h2>{{ "Webhook"|t('alarm-clock') }}</h2>
+
+{{ forms.autosuggestField({
+    label: "POST every crossing to"|t('alarm-clock'),
+    instructions: "A Slack incoming webhook, a CDN purge endpoint, a build hook — anything that speaks HTTP."|t('alarm-clock'),
+    id: 'webhookUrl',
+    name: 'webhookUrl',
+    value: settings.webhookUrl,
+    suggestEnvVars: true,
+    errors: settings.getErrors('webhookUrl'),
+}) }}
+
+{{ forms.selectField({
+    label: "Body format"|t('alarm-clock'),
+    id: 'webhookFormat',
+    name: 'webhookFormat',
+    options: [
+        { label: "JSON"|t('alarm-clock'), value: 'json' },
+        { label: "Slack"|t('alarm-clock'), value: 'slack' },
+    ],
+    value: settings.webhookFormat,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Signing secret"|t('alarm-clock'),
+    instructions: "When set, the body is signed as `sha256=<hmac>` in an `X-AlarmClock-Signature` header, over the exact bytes sent."|t('alarm-clock'),
+    id: 'webhookSecret',
+    name: 'webhookSecret',
+    value: settings.webhookSecret,
+    suggestEnvVars: true,
+}) }}
+
+<hr>
+
+<h2>{{ "When something fails"|t('alarm-clock') }}</h2>
+
+<p class="light">
+    {{ "Every piece of follow-up work is its own durable row with its own attempt count, so a webhook that is down for an hour retries on its own without the cache clear or the email being held up behind it."|t('alarm-clock') }}
+</p>
+
+{{ forms.textField({
+    label: "Attempts"|t('alarm-clock'),
+    instructions: "How many tries before a piece of work is abandoned and someone is told."|t('alarm-clock'),
+    id: 'maxAttempts',
+    name: 'maxAttempts',
+    value: settings.maxAttempts,
+    type: 'number',
+    size: 6,
+    errors: settings.getErrors('maxAttempts'),
+}) }}
+
+{{ forms.textField({
+    label: "First retry after"|t('alarm-clock'),
+    instructions: "Seconds. Doubles with each attempt, plus a little jitter so a hundred failed webhooks do not all come back in the same second and knock the endpoint over again."|t('alarm-clock'),
+    id: 'retryBaseDelay',
+    name: 'retryBaseDelay',
+    value: settings.retryBaseDelay,
+    type: 'number',
+    size: 8,
+    errors: settings.getErrors('retryBaseDelay'),
+}) }}
+
+{{ forms.textField({
+    label: "Longest retry delay"|t('alarm-clock'),
+    instructions: "Seconds. The ceiling on the backoff."|t('alarm-clock'),
+    id: 'retryMaxDelay',
+    name: 'retryMaxDelay',
+    value: settings.retryMaxDelay,
+    type: 'number',
+    size: 8,
+    errors: settings.getErrors('retryMaxDelay'),
+}) }}
+
+{{ forms.textField({
+    label: "Assume a runner has died after"|t('alarm-clock'),
+    instructions: "Seconds. A task still marked running after this is returned to the pool — a deploy or an out-of-memory kill would otherwise leave it claimed forever, which is the most confusing state there is: nothing broken, nothing happening."|t('alarm-clock'),
+    id: 'taskTtr',
+    name: 'taskTtr',
+    value: settings.taskTtr,
+    type: 'number',
+    size: 8,
+    errors: settings.getErrors('taskTtr'),
+}) }}
+
+<a class="fieldtoggle" data-target="advanced">{{ "Advanced"|t('alarm-clock') }}</a>
+
+<div id="advanced" class="hidden">
+    {{ forms.textField({
+        label: "Crossings per check"|t('alarm-clock'),
+        instructions: "The most to record in one pass. A site restored from backup can have thousands of past post dates; recording them in batches keeps a catch-up from becoming a timeout. The rest are picked up on the next check."|t('alarm-clock'),
+        id: 'maxTransitionsPerTick',
+        name: 'maxTransitionsPerTick',
+        value: settings.maxTransitionsPerTick,
+        type: 'number',
+        size: 8,
+    }) }}
+
+    {{ forms.textField({
+        label: "Tasks per front-end check"|t('alarm-clock'),
+        instructions: "The visitor has already been served by this point, but the process is still theirs. Keep it small."|t('alarm-clock'),
+        id: 'maxTasksPerWebTick',
+        name: 'maxTasksPerWebTick',
+        value: settings.maxTasksPerWebTick,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.textField({
+        label: "Seconds per front-end check"|t('alarm-clock'),
+        id: 'webTickBudget',
+        name: 'webTickBudget',
+        value: settings.webTickBudget,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.textField({
+        label: "Tasks per console or queue check"|t('alarm-clock'),
+        id: 'maxTasksPerRun',
+        name: 'maxTasksPerRun',
+        value: settings.maxTasksPerRun,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.textField({
+        label: "Keep history for"|t('alarm-clock'),
+        instructions: "Days. 0 keeps everything. Unfinished work is never deleted, whatever its age."|t('alarm-clock'),
+        id: 'historyRetentionDays',
+        name: 'historyRetentionDays',
+        value: settings.historyRetentionDays,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.textField({
+        label: "Warm request timeout"|t('alarm-clock'),
+        id: 'warmTimeout',
+        name: 'warmTimeout',
+        value: settings.warmTimeout,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.textField({
+        label: "Webhook timeout"|t('alarm-clock'),
+        id: 'webhookTimeout',
+        name: 'webhookTimeout',
+        value: settings.webhookTimeout,
+        type: 'number',
+        size: 6,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Log everything"|t('alarm-clock'),
+        instructions: "A log line for every detection and every task outcome. Useful while working out why something is not happening; noisy otherwise."|t('alarm-clock'),
+        id: 'verboseLogging',
+        name: 'verboseLogging',
+        on: settings.verboseLogging,
+    }) }}
+</div>

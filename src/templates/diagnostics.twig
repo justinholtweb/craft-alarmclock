@@ -1,0 +1,52 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+{% set title = "Diagnostics"|t('alarm-clock') %}
+{% set selectedSubnavItem = 'diagnostics' %}
+{% do view.registerAssetBundle("justinholtweb\\alarmclock\\web\\assets\\cp\\CpAsset") %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <button type="button" class="btn" data-ac-action="alarm-clock/dashboard/run-now">{{ "Check now"|t('alarm-clock') }}</button>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="readable">
+        <p>
+            {{ "Almost every “my scheduled post did not publish” in Craft turns out to be one of the things below, and almost none of them are cron."|t('alarm-clock') }}
+        </p>
+    </div>
+
+    {% if hasProblems %}
+        <div class="ac-banner ac-banner--bad">
+            {{ "Something here would stop scheduled content appearing on time."|t('alarm-clock') }}
+        </div>
+    {% else %}
+        <div class="ac-banner ac-banner--good">
+            {{ "Nothing found that would stop scheduled content appearing on time."|t('alarm-clock') }}
+        </div>
+    {% endif %}
+
+    <ul class="ac-findings">
+        {% for finding in findings %}
+            {% include 'alarm-clock/_partials/finding' with { finding: finding } only %}
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>{{ "Ask about one entry"|t('alarm-clock') }}</h2>
+    <p class="light">{{ "Paste an entry ID to get a straight answer about that entry in particular."|t('alarm-clock') }}</p>
+
+    <div class="flex">
+        {{ forms.text({ id: 'ac-entry-id', placeholder: "Entry ID"|t('alarm-clock'), size: 12, type: 'number' }) }}
+        <button type="button" class="btn submit" id="ac-diagnose">{{ "Explain"|t('alarm-clock') }}</button>
+    </div>
+
+    {% js %}
+        document.getElementById('ac-diagnose').addEventListener('click', () => {
+            const id = document.getElementById('ac-entry-id').value.trim();
+            if (id) window.location = Craft.getCpUrl('alarm-clock/diagnostics/' + encodeURIComponent(id));
+        });
+    {% endjs %}
+{% endblock %}
