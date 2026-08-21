@@ -131,6 +131,44 @@ show the thing the email is about.
 
 See also `[[craft-plugin-gotchas]]` and `[[craft-abacus-gotchas]]` in the shared memory.
 
+## Icons, docs, promos and the marketing site
+
+The icon follows the family shape: a 100×100 viewBox, a rounded tile at `rx="22.44"` filled with
+the plugin's accent, and the mark in `#FEFEFE`. The accent is **`#C2610F`** — a burnt amber rather
+than the icon's original `#FFB703`, because `.btn-primary` on the marketing site puts white text on
+that colour and bright amber fails it. The tile colour, `accentColor` in the page seed, and the
+promo palette are all the same value; keep them that way.
+
+`src/icon-mask.svg` is scaled into 2–98 of the viewBox. Drawn at its natural size the feet reach
+y=104 and are simply clipped off, which is invisible in an editor and obvious in the CP nav.
+
+`docs/*.md` is the **source of truth** for the marketing site's documentation. Each file needs YAML
+front matter with at least a `title`; a file without it is skipped, which is how `docs/plan.md`
+stays off the site. Changing a doc means re-syncing:
+
+```sh
+cd ~/Sites/justinholt
+ddev exec php craft pluginsite/docs/sync craft-alarmclock
+ddev exec php scripts/check-plugin-sites.php     # 19 checks
+```
+
+The marketing page itself is `scripts/seed/plugin-pages/craft-alarmclock.json` in that repo, imported
+with `pluginsite/page/import craft-alarmclock`. The full procedure and its traps live in the
+`plugin-marketing-site` skill there — use it rather than working from memory.
+
+`promos/` renders the seven 1920×1080 Plugin Store images:
+
+```sh
+./promos/build.sh          # all slides
+./promos/build.sh "2 5"    # just those two
+```
+
+They live **in this repo**, not a website repo — plugin marketing sites are pages inside the
+justinholt.com install now, and a Plugin Store asset belongs with the plugin anyway. Two things bite
+when editing `slides.html`: `.points li` is a flex container, so every text run either side of an
+inline tag becomes its own flex item and lays out as a column; and `background-clip: text` clips to
+the line box, so the gradient headline needs a `line-height` above 1 or its descenders vanish.
+
 ## Testing
 
 No local PHP on this Mac. Everything runs inside the plugin-testing container:

@@ -3,6 +3,13 @@
 Scheduled publishing that tells you it happened — cache clearing, notifications, retries,
 scheduled drafts, and a straight answer to “why isn’t my post live?”
 
+**[Documentation](https://justinholt.com/plugins/craft-alarmclock/docs)** ·
+[Installation](https://justinholt.com/plugins/craft-alarmclock/docs/installation) ·
+[Configuration](https://justinholt.com/plugins/craft-alarmclock/docs/configuration) ·
+[Usage](https://justinholt.com/plugins/craft-alarmclock/docs/usage) ·
+[Troubleshooting](https://justinholt.com/plugins/craft-alarmclock/docs/troubleshooting) ·
+[FAQ](https://justinholt.com/plugins/craft-alarmclock/docs/faq)
+
 ---
 
 ## The problem this actually solves
@@ -264,4 +271,6 @@ identifier, address, session or event row anywhere in it.
 
 ## Licence
 
-MIT.
+[The Craft License](LICENSE.md) — the standard Craft Plugin Store licence, the same one the
+rest of the family ships under. Alarm Clock is free, so there is no key to enter and nothing to
+pay; the licence is not MIT.
