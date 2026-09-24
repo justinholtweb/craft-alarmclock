@@ -1,5 +1,12 @@
 # Release Notes for Alarm Clock
 
+## 5.0.1 - 2026-09-24
+
+### Fixed
+
+- The entry sidebar panel crammed its note, date and time inputs, checkbox, button and link into a
+  single row beside the “Alarm Clock” label. They now stack beneath a title.
+
 ## 5.0.0
 
 Initial release. Numbered to match the Craft major version, in line with the rest of the family.

@@ -15,12 +15,12 @@
 {% set isExpired = entry.expiryDate and entry.expiryDate <= now %}
 
 {% if isDraft or isPending or isExpired or schedule %}
+    {# Not a `.meta > .field` row: Craft lays those out as a fixed-width heading column beside a
+       flex `.input`, which squeezes the note, date field, checkbox and button side by side. #}
     <div class="meta ac-sidebar" data-ac-sidebar>
-        <div class="field">
-            <div class="heading">
-                <label>{{ "Alarm Clock"|t('alarm-clock') }}</label>
-            </div>
-            <div class="input">
+        <div class="ac-sidebar__body">
+            <h2 class="ac-sidebar__title">{{ "Alarm Clock"|t('alarm-clock') }}</h2>
+            <div>
                 {% if isPending %}
                     <p class="ac-sidebar__note">
                         {{ "Goes live {date}."|t('alarm-clock', { date: entry.postDate|datetime('short') }) }}
@@ -62,11 +62,13 @@
                             label: "Enable the entry when it is applied"|t('alarm-clock'),
                         }) }}
 
-                        <button type="button" class="btn small submit" data-ac-schedule
-                                data-draft-id="{{ entry.draftId }}"
-                                data-site-id="{{ entry.siteId }}">
-                            {{ "Schedule"|t('alarm-clock') }}
-                        </button>
+                        <div class="buttons">
+                            <button type="button" class="btn small submit" data-ac-schedule
+                                    data-draft-id="{{ entry.draftId }}"
+                                    data-site-id="{{ entry.siteId }}">
+                                {{ "Schedule"|t('alarm-clock') }}
+                            </button>
+                        </div>
                     {% endif %}
                 {% endif %}
 

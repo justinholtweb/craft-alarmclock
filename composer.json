@@ -1,7 +1,7 @@
 {
     "name": "justinholtweb/craft-alarmclock",
     "description": "Scheduled publishing for Craft CMS that actually tells you it happened — cache clearing, notifications, retries, scheduled drafts and a diagnostic for “why isn’t my post live?”",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "type": "craft-plugin",
     "keywords": [
         "craftcms",

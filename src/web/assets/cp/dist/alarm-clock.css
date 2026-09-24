@@ -111,6 +111,27 @@
     border-bottom: 1px solid rgba(96, 125, 159, 0.2);
 }
 
+.ac-sidebar__body {
+    padding-block: var(--m, 14px);
+}
+
+.ac-sidebar__title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg-subtle, #606d7b);
+}
+
+/* `.details .field` pulls fields out to the pane edge with negative margins; keep ours in the box. */
+.ac-sidebar .field {
+    margin-inline: 0 !important;
+    margin-block: 0 12px;
+}
+
+.ac-sidebar .buttons {
+    margin-block: 0;
+}
+
 .ac-sidebar__note {
     margin: 0 0 10px;
     font-size: 12px;
